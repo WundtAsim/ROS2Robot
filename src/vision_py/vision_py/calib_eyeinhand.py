@@ -27,6 +27,7 @@ class Calibrator_eyeinhand(Calc_tgt2cam):
         self.R_tgt2cam = []
         self.t_tgt2cam = []
         self.R_grp2base = []
+        self.R_grp2base_Quat = []
         self.t_grp2base = []
 
     def img_callback(self, msg):
@@ -61,21 +62,22 @@ class Calibrator_eyeinhand(Calc_tgt2cam):
             self.t_tgt2cam.append(tgt2cam_t)
 
             # 四元数转为旋转矩阵
-            grp2base_r = self.quaternion_to_rotation_matrix(grp2base_r)
-            self.R_grp2base.append(grp2base_r)
+            self.R_grp2base_Quat.append(grp2base_r)
+            self.R_grp2base.append(self.quaternion_to_rotation_matrix(grp2base_r))
             self.t_grp2base.append(grp2base_t)
 
             self.count+=1
         elif key == 13 and self.count>3:# Enter
             s_tgt2cam_R = np.stack(self.R_tgt2cam)
-            np.save('./data/tgt2cam_R', s_tgt2cam_R)
+            np.save('./data/calib/tgt2cam_R', s_tgt2cam_R)
             s_tgt2cam_t = np.stack(self.t_tgt2cam)
-            np.save('./data/tgt2cam_t', s_tgt2cam_t)
+            np.save('./data/calib/tgt2cam_t', s_tgt2cam_t)
 
             s_grp2base_R = np.stack(self.R_grp2base)
-            np.save('./data/grp2base_R', s_grp2base_R)
+            np.save('./data/calib/grp2base_R', s_grp2base_R)
+            np.save('./data/calib/grp2base_R_Quat', np.stack(self.R_grp2base_Quat))
             s_grp2base_t = np.stack(self.t_grp2base)
-            np.save('./data/grp2base_t', s_grp2base_t)
+            np.save('./data/calib/grp2base_t', s_grp2base_t)
 
             R_cam2grp, t_cam2grp = cv2.calibrateHandEye(self.R_grp2base, self.t_grp2base, 
                                                         self.R_tgt2cam, self.t_tgt2cam)
@@ -113,7 +115,7 @@ class Calibrator_eyeinhand(Calc_tgt2cam):
     def quaternion_to_rotation_matrix(self, q):  # x, y ,z ,w
         x = q[0]
         y = q[1]
-        z = q[3]
+        z = q[2]
         w = q[3]
         rot_matrix = np.array(
             [[1.0 - 2*(y**2 + z**2),    2*(x*y - w*z),          2*(x*z + w*y)],
