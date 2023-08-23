@@ -113,14 +113,17 @@ class Calibrator_eyeinhand(Calc_tgt2cam):
             return None, None
         
     def quaternion_to_rotation_matrix(self, q):  # x, y ,z ,w
-        x = q[0]
-        y = q[1]
-        z = q[2]
-        w = q[3]
+        '''
+        same as transforms3d.quaternions.quat2mat: use parameter (w,x,y,z)
+        '''
+        w = q[0]
+        x = q[1]
+        y = q[2]
+        z = q[3]
         rot_matrix = np.array(
             [[1.0 - 2*(y**2 + z**2),    2*(x*y - w*z),          2*(x*z + w*y)],
             [2*(x*y + w*z),             1.0 - 2*(x**2 + z**2),  2*(y*z - w*x)],
-            [2*(x*z - w*y),             2*(y*z - w*x),          1.0 - 2*(x**2 + y**2)]],
+            [2*(x*z - w*y),             2*(y*z + w*x),          1.0 - 2*(x**2 + y**2)]],
             dtype=q.dtype)
         return rot_matrix
 

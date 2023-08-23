@@ -1,5 +1,3 @@
-import grp
-from hmac import new
 import numpy as np
 import cv2
 
@@ -30,8 +28,8 @@ R_cam2grp, t_cam2grp = cv2.calibrateHandEye(grp2base_r, grp2base_t,
 print('cam2grp_t',t_cam2grp)
 
 for i in range(25):
-    a1 = (grp2base_r[i] * np.array([0,0,0]).reshape(3,-1))[0].reshape(3,-1) + grp2base_t[i]*100
-    a2 = (grp2base_r[i] * np.array([100,0,0]).reshape(3,-1))[0].reshape(3,-1) + grp2base_t[i]*100
+    a1 = (grp2base_r[i] @ np.array([0,0,0]).reshape(3,-1)).reshape(3,-1) + grp2base_t[i]*100
+    a2 = (grp2base_r[i] @ np.array([100,0,0]).reshape(3,-1)).reshape(3,-1) + grp2base_t[i]*100
     print(distance(a1,a2))
 
 
