@@ -84,8 +84,10 @@ class Calibrator_eyeinhand(Calc_tgt2cam):
             print("cam2grp_t:",t_cam2grp)
             np.save('./data/cam2grp_R', R_cam2grp)
             np.save('./data/cam2grp_t', t_cam2grp)
+            print("flag:8/23 21:58")
             quit()
         elif key == ord('q'):
+            print("flag:8/23 21:58")
             quit()
         
 
@@ -116,10 +118,10 @@ class Calibrator_eyeinhand(Calc_tgt2cam):
         '''
         same as transforms3d.quaternions.quat2mat: use parameter (w,x,y,z)
         '''
-        w = q[0]
-        x = q[1]
-        y = q[2]
-        z = q[3]
+        x = q[0]
+        y = q[1]
+        z = q[2]
+        w = q[3]
         rot_matrix = np.array(
             [[1.0 - 2*(y**2 + z**2),    2*(x*y - w*z),          2*(x*z + w*y)],
             [2*(x*y + w*z),             1.0 - 2*(x**2 + z**2),  2*(y*z - w*x)],
