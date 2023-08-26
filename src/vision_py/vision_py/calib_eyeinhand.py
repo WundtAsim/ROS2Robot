@@ -84,10 +84,10 @@ class Calibrator_eyeinhand(Calc_tgt2cam):
             print("cam2grp_t:",t_cam2grp)
             np.save('./data/cam2grp_R', R_cam2grp)
             np.save('./data/cam2grp_t', t_cam2grp)
-            print("flag:8/23 21:58")
+            print("flag:8/26 16:08")
             quit()
         elif key == ord('q'):
-            print("flag:8/23 21:58")
+            print("flag:8/26 16:08")
             quit()
         
 
@@ -137,8 +137,8 @@ def main():
     # 添加命令行参数
     parser.add_argument("--img", type=str, default='/zed2i/zed_node/left_raw/image_raw_color', help="发布图像topic")
     parser.add_argument("--info", type=str, default='/zed2i/zed_node/left/camera_info', help="发布相机参数topic")
-    parser.add_argument("--base", type=str, default='base_link_inertia', help="base 坐标系")
-    parser.add_argument("--grp", type=str, default='wrist_3_link', help="gripper 坐标系")
+    parser.add_argument("--base", type=str, default='base', help="base 坐标系")
+    parser.add_argument("--grp", type=str, default='tool0', help="gripper 坐标系")
 
 
     # 解析命令行参数
