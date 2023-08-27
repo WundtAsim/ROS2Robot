@@ -23,7 +23,8 @@ setup(
             "subscribed_img_viewer = vision_py.subscribed_img_viewer:main",
             "test_publisher = vision_py.test_publisher:main",
             "tgt2cam = vision_py.tgt2cam:main",
-            "calib_eyeinhand = vision_py.calib_eyeinhand:main"
+            "calib_eyeinhand = vision_py.calib_eyeinhand:main",
+            "cap_rgbd = vision_py.cap_rgbd:main"
         ],
     },
 )

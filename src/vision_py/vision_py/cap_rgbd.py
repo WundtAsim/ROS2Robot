@@ -1,92 +1,68 @@
 import argparse
 import rclpy
+from sensor_msgs.msg import Image
 from tf2_ros.buffer import Buffer
 from tf2_ros.transform_listener import TransformListener
 import cv2
 import numpy as np
-from vision_py.tgt2cam import Calc_tgt2cam
 
-class Calibrator_eyeinhand(Calc_tgt2cam):
+from vision_py.subscribed_img_viewer import ImageSubscriber
+
+
+
+class Cap_rgbd(ImageSubscriber):
     def __init__(self, name, 
                  image_topic,
-                 info_topic,
                  base_link,
                  gripper_link):
         # initiate the node and give it a name
-        super().__init__(name, image_topic, info_topic)
-        
+        super().__init__(name, image_topic)
+
         self.base_link = base_link
         self.gripper_link = gripper_link
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
-        # images that have taken
+
+        # create the img_subscriber, receive the image
+        self.img_subscription = self.create_subscription(
+            msg_type = Image,
+            topic = image_topic,
+            callback = self.img_callback,
+            qos_profile = 10
+        ) 
+
         self.count = 0
-        self.R_tgt2cam = []
-        self.t_tgt2cam = []
         self.R_grp2base = []
-        self.R_grp2base_Quat = []
         self.t_grp2base = []
+
 
     def img_callback(self, msg):
         # convet the ROS image to Opencv bgr image
         current_frame = self.br.imgmsg_to_cv2(msg)
-        
-        # get the tgt2cam matrix
-        points_2d, tgt2cam_r, tgt2cam_t = self.calc_tgt2cam(current_frame)
+        # change the float32 to uint8, with 4 channels(low-bit-->high-bit)
+        depth_image = current_frame.view(np.uint8).reshape(current_frame.shape + (4,))
         
         # get the gripper2base tranlstation and rotation
         grp2base_r, grp2base_t = self.gripper2base()
         
-        # show the corners & tips
-        success = points_2d is not None
-        if success:
-            text = 'Press [space] to capture images, [{}] have taken.'.format(self.count)
-        else:
-            text = 'No chess board Conners found!'
-        cv2.putText(current_frame, text, org=(10,30), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.8, color=(0,0,255), thickness=2)
-        if self.count>=3:
-            cv2.putText(current_frame, 'Press [Enter] to calibrate & quit.', 
-                        org=(10,65), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.8, color=(0,0,255), thickness=2)
-        
-        # show the image
-        cv2.drawChessboardCorners(current_frame, self.pattern_shape, points_2d, success)
-        cv2.imshow('findCorners', current_frame)
+        cv2.imshow('RGBD', depth_image)
         key = cv2.waitKey(1) & 0xFF
         if key == ord(' '):
-            # 旋转向量转为旋转矩阵
-            # tgt2cam_r = cv2.Rodrigues(src=tgt2cam_r, jacobian=None)[0]
-            self.R_tgt2cam.append(tgt2cam_r)
-            self.t_tgt2cam.append(tgt2cam_t)
-
-            # 四元数转为旋转矩阵
-            self.R_grp2base_Quat.append(grp2base_r)
+            # 采集深度图与位姿
+            cv2.imwrite('./data/depth/depth_{}.png'.format(self.count),
+                        depth_image)
             self.R_grp2base.append(self.quaternion_to_rotation_matrix(grp2base_r))
             self.t_grp2base.append(grp2base_t)
-
             self.count+=1
-        elif key == 13 and self.count>=3:# Enter
-            s_tgt2cam_R = np.stack(self.R_tgt2cam)
-            np.save('./data/calib/tgt2cam_R', s_tgt2cam_R)
-            s_tgt2cam_t = np.stack(self.t_tgt2cam)
-            np.save('./data/calib/tgt2cam_t', s_tgt2cam_t)
-
-            s_grp2base_R = np.stack(self.R_grp2base)
-            np.save('./data/calib/grp2base_R', s_grp2base_R)
-            np.save('./data/calib/grp2base_R_Quat', np.stack(self.R_grp2base_Quat))
-            s_grp2base_t = np.stack(self.t_grp2base)
-            np.save('./data/calib/grp2base_t', s_grp2base_t)
-
-            R_cam2grp, t_cam2grp = cv2.calibrateHandEye(self.R_grp2base, self.t_grp2base, 
-                                                        self.R_tgt2cam, self.t_tgt2cam)
-            print("cam2grp_t:",t_cam2grp)
-            np.save('./data/cam2grp_R', R_cam2grp)
-            np.save('./data/cam2grp_t', t_cam2grp)
-            print("flag:8/26 16:08")
-            quit()
+            print("collected {} frames.".format(self.count))
         elif key == ord('q'):
-            print("flag:8/26 16:08")
+            s_grp2base_R = np.stack(self.R_grp2base)
+            np.save('./data/depth/grp2base_R', s_grp2base_R)
+            s_grp2base_t = np.stack(self.t_grp2base)
+            np.save('./data/depth/grp2base_t', s_grp2base_t)
+            print("flag:8/27 15:08")
             quit()
-        
+
 
     def gripper2base(self):
         if self.tf_buffer.can_transform(self.base_link, self.gripper_link, rclpy.time.Time()):
@@ -132,30 +108,27 @@ class Calibrator_eyeinhand(Calc_tgt2cam):
 def main():
     parser = argparse.ArgumentParser()
     # 添加命令行参数
-    parser.add_argument("--img", type=str, default='/zed2i/zed_node/left_raw/image_raw_color', help="发布图像topic")
-    parser.add_argument("--info", type=str, default='/zed2i/zed_node/left/camera_info', help="发布相机参数topic")
+    parser.add_argument("--img", type=str, default='/zed2i/zed_node/depth/depth_registered', help="发布图像topic")
     parser.add_argument("--base", type=str, default='base', help="base 坐标系")
     parser.add_argument("--grp", type=str, default='tool0', help="gripper 坐标系")
-
 
     # 解析命令行参数
     args = parser.parse_args()
 
     rclpy.init()
 
-    calibrator = Calibrator_eyeinhand(
-        'calibrator',
+    calculator = Cap_rgbd(
+        'cap_rgbd',
         args.img,
-        args.info,
         args.base,
         args.grp
         )
     try:
-        rclpy.spin(calibrator)
+        rclpy.spin(calculator)
     except KeyboardInterrupt:
         pass
     cv2.destroyAllWindows()
     # destory the node explicitly
-    calibrator.destroy_node()
+    calculator.destroy_node()
     # shutdown the ROS client library for python
     rclpy.shutdown()
