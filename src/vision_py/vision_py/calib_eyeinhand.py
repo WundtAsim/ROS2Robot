@@ -46,7 +46,7 @@ class Calibrator_eyeinhand(Calc_tgt2cam):
         else:
             text = 'No chess board Conners found!'
         cv2.putText(current_frame, text, org=(10,30), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.8, color=(0,0,255), thickness=2)
-        if self.count>=3:
+        if self.count>=10:
             cv2.putText(current_frame, 'Press [Enter] to calibrate & quit.', 
                         org=(10,65), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.8, color=(0,0,255), thickness=2)
         
@@ -55,6 +55,7 @@ class Calibrator_eyeinhand(Calc_tgt2cam):
         cv2.imshow('findCorners', current_frame)
         key = cv2.waitKey(1) & 0xFF
         if key == ord(' '):
+            # cv2.imwrite('./data/calib/images/left_{}.png'.format(self.count), current_frame)
             self.R_tgt2cam.append(tgt2cam_r)
             self.t_tgt2cam.append(tgt2cam_t)
 
@@ -63,11 +64,11 @@ class Calibrator_eyeinhand(Calc_tgt2cam):
 
             # 四元数转为旋转矩阵
             # self.R_grp2base_Quat.append(grp2base_r) # use rotation vector
-            self.R_grp2base.append(cv2.Rodrigues(grp2base_r)[0])
+            self.R_grp2base.append(grp2base_r)
             self.t_grp2base.append(grp2base_t)
 
             self.count+=1
-        elif key == 13 and self.count>=3:# Enter
+        elif key == 13 and self.count>=10:# Enter
             s_tgt2cam_R = np.stack(self.R_tgt2cam)
             np.save('./data/calib/tgt2cam_R', s_tgt2cam_R)
             s_tgt2cam_t = np.stack(self.t_tgt2cam)
@@ -84,10 +85,10 @@ class Calibrator_eyeinhand(Calc_tgt2cam):
             print("cam2grp_t:",t_cam2grp)
             np.save('./data/cam2grp_R', R_cam2grp)
             np.save('./data/cam2grp_t', t_cam2grp)
-            print("flag:09/07 10:20")
+            print("flag:09/07 16:20")
             quit()
         elif key == ord('q'):
-            print("flag:09/07 10:20")
+            print("flag:09/07 16:20")
             quit()
         
 

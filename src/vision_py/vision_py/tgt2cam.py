@@ -77,7 +77,8 @@ class Calc_tgt2cam(ImageSubscriber):
         
         # 获取外参
         success, tgt2cam_r, tgt2cam_t= cv2.solvePnP(self.corners3d_tgt, exact_corners, self.cam_info, self.cam_dist)
-        self.get_logger().info("\n[tgt2cam_r]:{}\n[tgt2cam_t]:{}".format(tgt2cam_r, tgt2cam_t))
+        self.get_logger().info("\n[cam_info]:\n{}\n[cam_dist]:\n{}".format(self.cam_info, self.cam_dist))
+        self.get_logger().info("\n[tgt2cam_r]:\n{}\n[tgt2cam_t]:\n{}".format(tgt2cam_r, tgt2cam_t))
         return exact_corners, tgt2cam_r, tgt2cam_t
 
 
