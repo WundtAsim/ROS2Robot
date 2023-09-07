@@ -4,6 +4,7 @@ from tf2_ros.buffer import Buffer
 from tf2_ros.transform_listener import TransformListener
 import cv2
 import numpy as np
+import  UR_TCP_RTDE as UR
 from vision_py.tgt2cam import Calc_tgt2cam
 
 class Calibrator_eyeinhand(Calc_tgt2cam):
@@ -21,11 +22,15 @@ class Calibrator_eyeinhand(Calc_tgt2cam):
         self.tf_listener = TransformListener(self.tf_buffer, self)
         # images that have taken
         self.count = 0
+        # matrix saved
         self.R_tgt2cam = []
         self.t_tgt2cam = []
         self.R_grp2base = []
-        self.R_grp2base_Quat = []
+        # self.R_grp2base_Quat = []
         self.t_grp2base = []
+        
+    def __del__(self):
+        cv2.destroyAllWindows()
 
     def img_callback(self, msg):
         # convet the ROS image to Opencv bgr image
@@ -33,9 +38,6 @@ class Calibrator_eyeinhand(Calc_tgt2cam):
         
         # get the tgt2cam matrix
         points_2d, tgt2cam_r, tgt2cam_t = self.calc_tgt2cam(current_frame)
-        
-        # get the gripper2base tranlstation and rotation
-        grp2base_r, grp2base_t = self.gripper2base()
         
         # show the corners & tips
         success = points_2d is not None
@@ -53,14 +55,15 @@ class Calibrator_eyeinhand(Calc_tgt2cam):
         cv2.imshow('findCorners', current_frame)
         key = cv2.waitKey(1) & 0xFF
         if key == ord(' '):
-            # 旋转向量转为旋转矩阵
-            # tgt2cam_r = cv2.Rodrigues(src=tgt2cam_r, jacobian=None)[0]
             self.R_tgt2cam.append(tgt2cam_r)
             self.t_tgt2cam.append(tgt2cam_t)
 
+            # get the gripper2base tranlstation and rotation
+            grp2base_r, grp2base_t = self.gripper2base_tcp()
+
             # 四元数转为旋转矩阵
-            self.R_grp2base_Quat.append(grp2base_r)
-            self.R_grp2base.append(self.quaternion_to_rotation_matrix(grp2base_r))
+            # self.R_grp2base_Quat.append(grp2base_r) # use rotation vector
+            self.R_grp2base.append(cv2.Rodrigues(grp2base_r)[0])
             self.t_grp2base.append(grp2base_t)
 
             self.count+=1
@@ -72,7 +75,7 @@ class Calibrator_eyeinhand(Calc_tgt2cam):
 
             s_grp2base_R = np.stack(self.R_grp2base)
             np.save('./data/calib/grp2base_R', s_grp2base_R)
-            np.save('./data/calib/grp2base_R_Quat', np.stack(self.R_grp2base_Quat))
+            # np.save('./data/calib/grp2base_R_RV', np.stack(self.R_grp2base_Quat))
             s_grp2base_t = np.stack(self.t_grp2base)
             np.save('./data/calib/grp2base_t', s_grp2base_t)
 
@@ -81,12 +84,24 @@ class Calibrator_eyeinhand(Calc_tgt2cam):
             print("cam2grp_t:",t_cam2grp)
             np.save('./data/cam2grp_R', R_cam2grp)
             np.save('./data/cam2grp_t', t_cam2grp)
-            print("flag:8/26 16:08")
+            print("flag:09/07 10:20")
             quit()
         elif key == ord('q'):
-            print("flag:8/26 16:08")
+            print("flag:09/07 10:20")
             quit()
         
+
+    def gripper2base_tcp(self):
+        # for tcp connected
+        self.TCP_socket = UR.connect('192.168.1.24',30003)
+        data = self.TCP_socket.recv(1116)
+        position = UR.get_position(data)
+        print('position:=',position)
+        pos = position[:3]
+        rotation = position[3:] # rotation vector
+        UR.disconnect(self.TCP_socket)
+        print("TCP disconnected...")
+        return rotation, pos
 
     def gripper2base(self):
         if self.tf_buffer.can_transform(self.base_link, self.gripper_link, rclpy.time.Time()):
@@ -126,7 +141,6 @@ class Calibrator_eyeinhand(Calc_tgt2cam):
             dtype=q.dtype)
         return rot_matrix
 
-    
 
 
 def main():
@@ -135,7 +149,7 @@ def main():
     parser.add_argument("--img", type=str, default='/zed2i/zed_node/left_raw/image_raw_color', help="发布图像topic")
     parser.add_argument("--info", type=str, default='/zed2i/zed_node/left/camera_info', help="发布相机参数topic")
     parser.add_argument("--base", type=str, default='base', help="base 坐标系")
-    parser.add_argument("--grp", type=str, default='tool0', help="gripper 坐标系")
+    parser.add_argument("--grp", type=str, default='flange', help="gripper 坐标系")
 
 
     # 解析命令行参数
@@ -154,7 +168,7 @@ def main():
         rclpy.spin(calibrator)
     except KeyboardInterrupt:
         pass
-    cv2.destroyAllWindows()
+    
     # destory the node explicitly
     calibrator.destroy_node()
     # shutdown the ROS client library for python

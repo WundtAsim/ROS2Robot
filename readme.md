@@ -1,17 +1,29 @@
-# robot
-start the zed2i
+# control the robot with ros2
+1. start the zed2i
 ```
 ros2 launch zed_wrapper zed2i.launch.py
 ```
 
-start the driver
+2. start the driver
 ```
 ros2 launch ur_robot_driver ur_control.launch.py ur_type:=ur10e robot_ip:=192.168.1.24 launch_rviz:=false
 ```
-Then load the URCap and play the program.
+3. Then load the URCap and play the program.
 
-launch the moveit
+4. launch the moveit
 ```
 source ~/Documents/Project/UR10e_WS/install/setup.bash
 ros2 launch ur_moveit_config ur_moveit.launch.py ur_type:=ur10e launch_rviz:=true
+```
+
+# setup ros2&robot(failed)
+1. install ros2 and robot driver:
+```
+sudo apt-get install ros-${ROS_DISTRO}-ur
+```
+2. network setup and prepare the robot
+3. export calibration file
+```
+ros2 launch ur_calibration calibration_correction.launch.py \
+robot_ip:=192.168.1.24 target_filename:="${HOME}/my_robot_calibration.yaml"
 ```
