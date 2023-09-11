@@ -75,9 +75,10 @@ class Calc_tgt2cam(ImageSubscriber):
         criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
         exact_corners = cv2.cornerSubPix(gray_img, points_2d, (11, 11), (-1, -1), criteria)
         
+        # self.get_logger().info("\n[cam_info]:\n{}\n[cam_dist]:\n{}".format(self.cam_info, self.cam_dist))
         # 获取外参
-        success, tgt2cam_r, tgt2cam_t= cv2.solvePnP(self.corners3d_tgt, exact_corners, self.cam_info, self.cam_dist)
-        self.get_logger().info("\n[cam_info]:\n{}\n[cam_dist]:\n{}".format(self.cam_info, self.cam_dist))
+        _, tgt2cam_r, tgt2cam_t, inliers = cv2.solvePnPRansac(self.corners3d_tgt, exact_corners, self.cam_info, self.cam_dist)
+        # success, tgt2cam_r, tgt2cam_t= cv2.solvePnP(self.corners3d_tgt, exact_corners, self.cam_info, self.cam_dist)
         self.get_logger().info("\n[tgt2cam_r]:\n{}\n[tgt2cam_t]:\n{}".format(tgt2cam_r, tgt2cam_t))
         return exact_corners, tgt2cam_r, tgt2cam_t
 

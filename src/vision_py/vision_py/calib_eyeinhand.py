@@ -35,6 +35,7 @@ class Calibrator_eyeinhand(Calc_tgt2cam):
     def img_callback(self, msg):
         # convet the ROS image to Opencv bgr image
         current_frame = self.br.imgmsg_to_cv2(msg)
+        image_save = current_frame.copy()
         
         # get the tgt2cam matrix
         points_2d, tgt2cam_r, tgt2cam_t = self.calc_tgt2cam(current_frame)
@@ -55,7 +56,7 @@ class Calibrator_eyeinhand(Calc_tgt2cam):
         cv2.imshow('findCorners', current_frame)
         key = cv2.waitKey(1) & 0xFF
         if key == ord(' '):
-            # cv2.imwrite('./data/calib/images/left_{}.png'.format(self.count), current_frame)
+            # cv2.imwrite('./data/calib/images/left_{}.png'.format(self.count), image_save)
             self.R_tgt2cam.append(tgt2cam_r)
             self.t_tgt2cam.append(tgt2cam_t)
 
@@ -85,10 +86,10 @@ class Calibrator_eyeinhand(Calc_tgt2cam):
             print("cam2grp_t:",t_cam2grp)
             np.save('./data/cam2grp_R', R_cam2grp)
             np.save('./data/cam2grp_t', t_cam2grp)
-            print("flag:09/07 16:20")
+            print("flag:09/08 16:10")
             quit()
         elif key == ord('q'):
-            print("flag:09/07 16:20")
+            print("flag:09/08 16:10")
             quit()
         
 
@@ -148,7 +149,7 @@ def main():
     parser = argparse.ArgumentParser()
     # 添加命令行参数
     parser.add_argument("--img", type=str, default='/zed2i/zed_node/left_raw/image_raw_color', help="发布图像topic")
-    parser.add_argument("--info", type=str, default='/zed2i/zed_node/left/camera_info', help="发布相机参数topic")
+    parser.add_argument("--info", type=str, default='/zed2i/zed_node/left_raw/camera_info', help="发布相机参数topic")
     parser.add_argument("--base", type=str, default='base', help="base 坐标系")
     parser.add_argument("--grp", type=str, default='flange', help="gripper 坐标系")
 
