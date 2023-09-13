@@ -34,7 +34,7 @@ class ImageSubscriber(Node):
 def main():
     parser = argparse.ArgumentParser()
     # 添加命令行参数
-    parser.add_argument("--img", type=str, default='/zed2i/zed_node/left_raw/image_raw_color', help="发布图像topic")
+    parser.add_argument("--img", type=str, default='/my_zed2i/left_image_raw', help="发布图像topic")
 
     # 解析命令行参数
     args = parser.parse_args()

@@ -1,4 +1,5 @@
 import argparse
+from tkinter import NO
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Image, CameraInfo
@@ -32,8 +33,11 @@ class Calc_tgt2cam(ImageSubscriber):
             qos_profile = 10
         )
 
+        self.cam_info = None
+        self.cam_dist = None
+
     def info_callback(self, msg):
-        self.cam_info = msg.k.reshape(3,3)
+        self.cam_info = np.array(msg.k).reshape(3,3)
         self.cam_dist = np.array(msg.d)
 
     def img_callback(self, msg):
@@ -86,8 +90,10 @@ class Calc_tgt2cam(ImageSubscriber):
 def main():
     parser = argparse.ArgumentParser()
     # 添加命令行参数
-    parser.add_argument("--img", type=str, default='/zed2i/zed_node/left/image_rect_color', help="发布图像topic")
-    parser.add_argument("--info", type=str, default='/zed2i/zed_node/left/camera_info', help="发布相机参数topic")
+    parser.add_argument("--img", type=str, default='/my_zed2i/left_image_raw', help="发布图像topic")
+    parser.add_argument("--info", type=str, default='/my_zed2i/left_camera_info', help="发布相机参数topic")
+    # parser.add_argument("--img", type=str, default='/zed2i/zed_node/left/image_rect_color', help="发布图像topic")
+    # parser.add_argument("--info", type=str, default='/zed2i/zed_node/left/camera_info', help="发布相机参数topic")
 
     # 解析命令行参数
     args = parser.parse_args()

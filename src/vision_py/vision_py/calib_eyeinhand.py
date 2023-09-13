@@ -148,8 +148,8 @@ class Calibrator_eyeinhand(Calc_tgt2cam):
 def main():
     parser = argparse.ArgumentParser()
     # 添加命令行参数
-    parser.add_argument("--img", type=str, default='/zed2i/zed_node/left_raw/image_raw_color', help="发布图像topic")
-    parser.add_argument("--info", type=str, default='/zed2i/zed_node/left_raw/camera_info', help="发布相机参数topic")
+    parser.add_argument("--img", type=str, default='/my_zed2i/left_image_raw', help="发布图像topic")
+    parser.add_argument("--info", type=str, default='/my_zed2i/left_camera_info', help="发布相机参数topic")
     parser.add_argument("--base", type=str, default='base', help="base 坐标系")
     parser.add_argument("--grp", type=str, default='flange', help="gripper 坐标系")
 
