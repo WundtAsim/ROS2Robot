@@ -7,6 +7,21 @@ def distance(c1, c2):
     c = np.sum((c1-c2)**2)
     return np.sqrt(c)
 
+def quaternion_to_rotation_matrix(q):  # x, y ,z ,w
+        '''
+        same as transforms3d.quaternions.quat2mat: use parameter (w,x,y,z)
+        '''
+        x = q[0]
+        y = q[1]
+        z = q[2]
+        w = q[3]
+        rot_matrix = np.array(
+            [[1.0 - 2*(y**2 + z**2),    2*(x*y - w*z),          2*(x*z + w*y)],
+            [2*(x*y + w*z),             1.0 - 2*(x**2 + z**2),  2*(y*z - w*x)],
+            [2*(x*z - w*y),             2*(y*z + w*x),          1.0 - 2*(x**2 + y**2)]],
+            dtype=q.dtype)
+        return rot_matrix
+
 def target2camera(file):
     '''
     :param file: 单张标定图片

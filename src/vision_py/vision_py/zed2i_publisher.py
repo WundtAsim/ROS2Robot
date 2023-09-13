@@ -44,11 +44,20 @@ class Zed2i_publisher(Node):
         camera_info_msg = CameraInfo()
         camera_info_msg.width = self.width
         camera_info_msg.height = self.height
-        camera_info_msg.distortion_model = "plumb_bob"
+        # camera_info_msg.distortion_model = "plumb_bob"
+        camera_info_msg.distortion_model = "rational_polynomial"
         camera_info_msg.k = [538.57, 0., 635.63,
                             0., 538.5, 350.7075,
                             0., 0., 1.]
-        camera_info_msg.d = [-0.06635, 0.041401, 0.000292541, -0.000472588, -0.0151654] # k1,k2,p1,p2,k3 
+        # camera_info_msg.d = [-0.06635, 0.041401, 0.000292541, -0.000472588, -0.0151654] # k1,k2,p1,p2,k3 
+        camera_info_msg.d = [13.258600234985352,
+                            -10.219599723815918,
+                            0.0003258869983255863,
+                            -0.0002168240025639534,
+                            1.5960400104522705,
+                            13.655200004577637,
+                            -10.19260025024414,
+                            1.4755799770355225]
         camera_info_msg.r = [1., 0., 0., 
                             0., 1., 0.,
                             0., 0., 1.]
