@@ -1,4 +1,3 @@
-import argparse
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Image
@@ -6,9 +5,14 @@ import cv2
 from cv_bridge import CvBridge
 
 class ImageSubscriber(Node):
-    def __init__(self, name, image_topic='/zed2i/zed_node/left_raw/image_raw_color'):
+    def __init__(self, name):
         # initiate the node and give it a name
         super().__init__(name)
+        self.get_logger().info(f"{name} node has activated!")
+        # declare parameter
+        self.declare_parameter('image_topic', '/my_zed2i/left_image_raw')
+        # get parameter
+        image_topic = self.get_parameter("image_topic").value
 
         # create the subscriber, receive the image
         self.img_subscription = self.create_subscription(
@@ -32,18 +36,9 @@ class ImageSubscriber(Node):
 
 
 def main():
-    parser = argparse.ArgumentParser()
-    # 添加命令行参数
-    parser.add_argument("--img", type=str, default='/my_zed2i/left_image_raw', help="发布图像topic")
-
-    # 解析命令行参数
-    args = parser.parse_args()
     rclpy.init()
-
-    
     image_subscriber = ImageSubscriber(
-        'image_subscriber',
-        args.img
+        'image_subscriber'
         )
     try:
         rclpy.spin(image_subscriber)

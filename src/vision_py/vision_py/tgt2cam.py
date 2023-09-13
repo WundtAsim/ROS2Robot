@@ -1,21 +1,22 @@
-import argparse
 from tkinter import NO
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Image, CameraInfo
 import cv2
 import numpy as np
+from cv_bridge import CvBridge
 
-from vision_py.subscribed_img_viewer import ImageSubscriber
-
-
-
-class Calc_tgt2cam(ImageSubscriber):
-    def __init__(self, name, 
-                 image_topic,
-                 info_topic):
+class Calc_tgt2cam(Node):
+    def __init__(self, name):
         # initiate the node and give it a name
-        super().__init__(name, image_topic)
+        super().__init__(name)
+        self.get_logger().info(f"{name} node has activated!")
+        # declare parameters
+        self.declare_parameter('image_topic', '/my_zed2i/left_image_raw')
+        self.declare_parameter('info_topic', '/my_zed2i/left_camera_info')
+        # get parameters
+        image_topic = self.get_parameter("image_topic").value
+        info_topic = self.get_parameter("info_topic").value
 
         # create the img_subscriber, receive the image
         self.img_subscription = self.create_subscription(
@@ -32,6 +33,8 @@ class Calc_tgt2cam(ImageSubscriber):
             callback = self.info_callback,
             qos_profile = 10
         )
+        # to convert between ROS and Opencv images
+        self.br = CvBridge()
 
         self.cam_info = None
         self.cam_dist = None
@@ -88,22 +91,13 @@ class Calc_tgt2cam(ImageSubscriber):
 
 
 def main():
-    parser = argparse.ArgumentParser()
-    # 添加命令行参数
-    parser.add_argument("--img", type=str, default='/my_zed2i/left_image_raw', help="发布图像topic")
-    parser.add_argument("--info", type=str, default='/my_zed2i/left_camera_info', help="发布相机参数topic")
     # parser.add_argument("--img", type=str, default='/zed2i/zed_node/left/image_rect_color', help="发布图像topic")
     # parser.add_argument("--info", type=str, default='/zed2i/zed_node/left/camera_info', help="发布相机参数topic")
-
-    # 解析命令行参数
-    args = parser.parse_args()
 
     rclpy.init()
 
     calculator = Calc_tgt2cam(
-        'calculator',
-        args.img,
-        args.info
+        'calculator'
         )
     try:
         rclpy.spin(calculator)

@@ -1,4 +1,3 @@
-import argparse
 import rclpy
 from tf2_ros.buffer import Buffer
 from tf2_ros.transform_listener import TransformListener
@@ -8,16 +7,18 @@ import  UR_TCP_RTDE as UR
 from vision_py.tgt2cam import Calc_tgt2cam
 
 class Calibrator_eyeinhand(Calc_tgt2cam):
-    def __init__(self, name, 
-                 image_topic,
-                 info_topic,
-                 base_link,
-                 gripper_link):
+    def __init__(self, name):
         # initiate the node and give it a name
-        super().__init__(name, image_topic, info_topic)
+        super().__init__(name)
+        # declare parameters
+        self.declare_parameter('base_link', 'base')
+        self.declare_parameter('gripper_link', 'tool0')
+        # get parameters
+        image_topic = self.get_parameter("image_topic").value
+        info_topic = self.get_parameter("info_topic").value
+        self.base_link = self.get_parameter("base_link").value
+        self.gripper_link = self.get_parameter("gripper_link").value
         
-        self.base_link = base_link
-        self.gripper_link = gripper_link
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
         # images that have taken
@@ -86,10 +87,10 @@ class Calibrator_eyeinhand(Calc_tgt2cam):
             print("cam2grp_t:",t_cam2grp)
             np.save('./data/cam2grp_R', R_cam2grp)
             np.save('./data/cam2grp_t', t_cam2grp)
-            print("flag:09/08 16:10")
+            print("flag:09/13 15:32")
             quit()
         elif key == ord('q'):
-            print("flag:09/08 16:10")
+            print("flag:09/13 15:32")
             quit()
         
 
@@ -146,25 +147,10 @@ class Calibrator_eyeinhand(Calc_tgt2cam):
 
 
 def main():
-    parser = argparse.ArgumentParser()
-    # 添加命令行参数
-    parser.add_argument("--img", type=str, default='/my_zed2i/left_image_raw', help="发布图像topic")
-    parser.add_argument("--info", type=str, default='/my_zed2i/left_camera_info', help="发布相机参数topic")
-    parser.add_argument("--base", type=str, default='base', help="base 坐标系")
-    parser.add_argument("--grp", type=str, default='flange', help="gripper 坐标系")
-
-
-    # 解析命令行参数
-    args = parser.parse_args()
-
     rclpy.init()
 
     calibrator = Calibrator_eyeinhand(
-        'calibrator',
-        args.img,
-        args.info,
-        args.base,
-        args.grp
+        'calibrator'
         )
     try:
         rclpy.spin(calibrator)
