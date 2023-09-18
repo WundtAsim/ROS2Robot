@@ -3,11 +3,12 @@ from glob import glob
 import os
 
 package_name = 'vision_py'
+submodules = 'vision_py/submodules'
 
 setup(
     name=package_name,
     version='0.0.0',
-    packages=[package_name],
+    packages=[package_name, submodules],
     data_files=[
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
@@ -27,8 +28,8 @@ setup(
             "tgt2cam = vision_py.tgt2cam:main",
             "calib_eyeinhand = vision_py.calib_eyeinhand:main",
             "cap_rgbd = vision_py.cap_rgbd:main",
-            "test_publisher = vision_py.test_publisher:main",
-            "zed2i_publisher = vision_py.zed2i_publisher:main"
+            "zed2i_publisher = vision_py.zed2i_publisher:main",
+            "gui_node = vision_py.gui_node:main"
         ],
     },
 )

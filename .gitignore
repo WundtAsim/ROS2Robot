@@ -2,6 +2,5 @@
 build/*
 install/*
 log/*
-src/vision_py/test/*
 src/vision_py/vision_py/__pycache__/*
 src/vision_py/resource/*
