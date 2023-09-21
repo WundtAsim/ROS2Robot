@@ -14,6 +14,9 @@ class Camera:
         self.R_grp2base = []
         self.t_grp2base = []
         self.count = 0
+        # get points in world axis, mm
+        self.pattern_shape = (4,6) # 4*6
+        self.pattern_size = 0.055 ## 55mm
         self.cam_info = np.array([
                         [532.17067684, 0., 635.037625],
                         [0., 532.44895492, 350.03883412],
@@ -24,7 +27,7 @@ class Camera:
                                    1.27057475e-4,
                                    -7.68919988e-2]])
         # factory parameters
-        
+
         # self.cam_info = np.array([[538.57, 0., 635.63],
         #                 [0., 538.5, 350.7075],
         #                 [0., 0., 1.]])
@@ -59,9 +62,7 @@ class Camera:
         
         # conver to gray image
         gray_img = cv2.cvtColor(self.image, cv2.COLOR_RGB2GRAY)
-        # get points in world axis, mm
-        self.pattern_shape = (4,6) # 4*6
-        self.pattern_size = 0.055 ## 55mm
+        
         # prepare object points list(000)(100)(200)
         objp = np.zeros((self.pattern_shape[0] * self.pattern_shape[1], 3), np.float32)
         objp[:, :2] = np.mgrid[0:self.pattern_shape[0], 0:self.pattern_shape[1]].T.reshape(-1, 2)
