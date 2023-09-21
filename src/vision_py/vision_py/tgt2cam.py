@@ -65,7 +65,7 @@ class Calc_tgt2cam(Node):
         gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         
         # get points in world axis, mm
-        self.pattern_shape = (4,6) # 4*6
+        self.pattern_shape = (6,4) # 4*6
         self.pattern_size = 0.055 ## 55mm
         self.corners3d_tgt = np.zeros((self.pattern_shape[0] * self.pattern_shape[1], 3), np.float32)
         self.corners3d_tgt[:, :2] = np.mgrid[0:self.pattern_shape[0], 0:self.pattern_shape[1]].T.reshape(-1, 2)

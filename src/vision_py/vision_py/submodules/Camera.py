@@ -33,25 +33,7 @@ class Camera:
         self.image_corners = self.image.copy()  
 
     def tgt2cam(self):
-        # conver to gray image
-        gray_img = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
-        # get points in world axis, mm
-        self.pattern_shape = (4,6) # 4*6
-        self.pattern_size = 0.055 ## 55mm
-        corners3d_tgt = np.zeros((self.pattern_shape[0] * self.pattern_shape[1], 3), np.float32)
-        corners3d_tgt[:, :2] = np.mgrid[0:self.pattern_shape[0], 0:self.pattern_shape[1]].T.reshape(-1, 2)
-        corners3d_tgt *= self.pattern_size 
-        success, points_2d = cv2.findChessboardCorners(gray_img, self.pattern_shape, None)
-        if not success:
-            print("no chess board!!")
-            self.tgt2cam_r = None
-            self.tgt2cam_t = None
-            self.image_corners =None
-            return None
-        
         criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
-        exact_corners = cv2.cornerSubPix(gray_img, points_2d, (11, 11), (-1, -1), criteria)
-        
         self.cam_info = np.array([[538.57, 0., 635.63],
                         [0., 538.5, 350.7075],
                         [0., 0., 1.]])
@@ -63,12 +45,31 @@ class Camera:
                         13.655200004577637,
                         -10.19260025024414,
                         1.4755799770355225])
+        # conver to gray image
+        gray_img = cv2.cvtColor(self.image, cv2.COLOR_RGB2GRAY)
+        # get points in world axis, mm
+        self.pattern_shape = (6,4) # 4*6
+        self.pattern_size = 0.055 ## 55mm
+        # prepare object points list(000)(100)(200)
+        objp = np.zeros((self.pattern_shape[0] * self.pattern_shape[1], 3), np.float32)
+        objp[:, :2] = np.mgrid[0:self.pattern_shape[0], 0:self.pattern_shape[1]].T.reshape(-1, 2)
+        objp *= self.pattern_size 
+        success, corners = cv2.findChessboardCorners(gray_img, self.pattern_shape, None)
+        if not success:
+            print("no chess board!!")
+            self.tgt2cam_r = None
+            self.tgt2cam_t = None
+            self.image_corners =None
+            return None
+        
+        exact_corners = cv2.cornerSubPix(gray_img, corners, (11, 11), (-1, -1), criteria)
+        
         # 获取外参
-        _, tgt2cam_r, tgt2cam_t, inliers = cv2.solvePnPRansac(corners3d_tgt, exact_corners, self.cam_info, self.cam_dist)
+        _, tgt2cam_r, tgt2cam_t, inliers = cv2.solvePnPRansac(objp, exact_corners, self.cam_info, self.cam_dist)
         print("\n[tgt2cam_r]:\n{}\n[tgt2cam_t]:\n{}".format(tgt2cam_r, tgt2cam_t))
         self.tgt2cam_r = tgt2cam_r
         self.tgt2cam_t = tgt2cam_t
-        self.image_corners = cv2.drawChessboardCorners(self.image_corners, self.pattern_shape, exact_corners, exact_corners is not None)
+        cv2.drawChessboardCorners(self.image_corners, self.pattern_shape, exact_corners, exact_corners is not None)
 
     # save one item for calibration
     def save_(self):
